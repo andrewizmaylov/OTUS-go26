@@ -2,19 +2,26 @@ package hw03frequencyanalysis
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
 )
 
+var re = regexp.MustCompile(`[.,!?;:\-"]+`)
+
 func Top10(s string) []string {
 	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.ReplaceAll(s, "\t", " ")
-	words := strings.Split(s, " ")
+	s = strings.ToLower(s)
+
+	clean := re.ReplaceAllString(s, "")
+
+	words := strings.Split(clean, " ")
 
 	freq := make(map[string]int)
 	for _, word := range words {
-		if utf8.RuneCountInString(word) > 0 {
+		if utf8.RuneCountInString(word) > 0 && word != "-" {
 			freq[word]++
 		}
 	}
