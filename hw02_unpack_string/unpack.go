@@ -46,31 +46,16 @@ func Unpack(s string) (unpacked string, err error) {
 		}
 		// If current is digit and not in escape mode
 		if unicode.IsDigit(current) && !escapeMode {
-			// Consecutive digits in source (e.g. "10" in "aaa10b") are invalid.
-			// Escaped digit followed by digit (e.g. \45) is valid: literal 4, then repeat 5 times.
-			prevRuneInSourceWasDigit := i > 0 && unicode.IsDigit(runes[i-1])
-			prevRuneWasEscaped := i >= 2 && runes[i-2] == '\\'
-			if prevRuneInSourceWasDigit && !prevRuneWasEscaped {
-				return "", ErrInvalidString
+			err := checkTwoConsecutiveDigits(runes, i)
+			if err != nil {
+				return "", err
 			}
 
-			// Convert digit to number
 			count, _ := strconv.Atoi(string(current))
-
-			if count == 0 {
-				// Remove previous character (don't write it)
-				// Since we can't remove from builder, we need to handle differently
-				// For now, we'll just skip writing it
-				prev = 0
-			} else {
-				// Write previous character count times
-				if unicode.IsDigit(prev) {
-					count--
-				}
-				for range count {
-					sb.WriteRune(prev)
-				}
+			if count > 0 {
+				updateString(&sb, prev, count)
 			}
+
 			prev = current
 		} else {
 			// Write previous character: either non-digit, or escaped literal (digit/backslash)
@@ -87,6 +72,25 @@ func Unpack(s string) (unpacked string, err error) {
 	}
 
 	result := sb.String()
-
 	return result, nil
+}
+
+// Consecutive digits in source (e.g. "10" in "aaa10b") are invalid.
+// Escaped digit followed by digit (e.g. \45) is valid: literal 4, then repeat 5 times.
+func checkTwoConsecutiveDigits(runes []rune, i int) error {
+	prevRuneInSourceWasDigit := i > 0 && unicode.IsDigit(runes[i-1])
+	prevRuneWasEscaped := i >= 2 && runes[i-2] == '\\'
+	if prevRuneInSourceWasDigit && !prevRuneWasEscaped {
+		return ErrInvalidString
+	}
+	return nil
+}
+
+func updateString(sb *strings.Builder, prev rune, count int) {
+	if unicode.IsDigit(prev) {
+		count--
+	}
+	for range count {
+		sb.WriteRune(prev)
+	}
 }
