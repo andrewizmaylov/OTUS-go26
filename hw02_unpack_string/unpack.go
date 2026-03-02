@@ -19,6 +19,11 @@ func Unpack(s string) (unpacked string, err error) {
 		return "", ErrInvalidString
 	}
 
+	result, ok := unpackString(runes)
+	return result, ok
+}
+
+func unpackString(runes []rune) (unpacked string, err error) {
 	var sb strings.Builder
 	var prev rune
 	var escapeMode bool
@@ -71,8 +76,7 @@ func Unpack(s string) (unpacked string, err error) {
 		sb.WriteRune(prev)
 	}
 
-	result := sb.String()
-	return result, nil
+	return sb.String(), nil
 }
 
 // Consecutive digits in source (e.g. "10" in "aaa10b") are invalid.
