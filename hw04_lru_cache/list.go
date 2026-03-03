@@ -12,7 +12,7 @@ type List interface {
 
 type ListItem struct {
 	Value interface{}
-	Key	 	string
+	Key   string
 	Next  *ListItem
 	Prev  *ListItem
 }
